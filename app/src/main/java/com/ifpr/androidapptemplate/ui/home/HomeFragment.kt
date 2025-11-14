@@ -1,52 +1,51 @@
 package com.ifpr.androidapptemplate.ui.home
 
 import android.Manifest
-import android.content.pm.PackageManager
-import android.content.Context
 import android.content.Intent
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.fragment.app.Fragment
-import android.util.Base64
-import android.widget.*
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.location.Geocoder
 import android.location.Location
+import android.os.Build
+import android.os.Bundle
 import android.os.Looper
+import android.util.Base64
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.ifpr.androidapptemplate.MainActivity
+import com.ifpr.androidapptemplate.R
+import com.ifpr.androidapptemplate.baseclasses.Item
+import com.ifpr.androidapptemplate.databinding.FragmentHomeBinding
+import com.ifpr.androidapptemplate.ui.ai.AiLogicActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
-import com.ifpr.androidapptemplate.R
-import com.ifpr.androidapptemplate.baseclasses.Item
-import com.ifpr.androidapptemplate.databinding.FragmentHomeBinding
-import com.ifpr.androidapptemplate.ui.ai.AiLogicActivity
 
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var currentAddressTextView: TextView
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -55,11 +54,8 @@ class HomeFragment : Fragment() {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2 // codigo de requisicao do gemini
     }
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
-    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,13 +64,15 @@ class HomeFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
+        // + gemini
+        requestNotificationPermission()
+
         inicializaGerenciamentoLocalizacao(view)
 
-        val container = view.findViewById<LinearLayout>(R.id.itemContainer)
-        carregarItensMarketplace(container)
+        val containerLayout = view.findViewById<LinearLayout>(R.id.itemContainer)
+        carregarItensMarketplace(containerLayout)
 
         val fab = view.findViewById<FloatingActionButton>(R.id.fab_ai)
-
         fab.setOnClickListener {
             val context = view.context
             val intent = Intent(context, AiLogicActivity::class.java)
@@ -84,6 +82,61 @@ class HomeFragment : Fragment() {
         return view
     }
 
+    // ✅ INÍCIO DO NOVO BLOCO DE CÓDIGO PARA PERMISSÃO DE NOTIFICAÇÃO
+    private fun requestNotificationPermission() {
+        // A permissão só é necessária no Android 13 (API 33) ou superior
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // Se não tiver a permissão, solicita ao usuário
+                requestPermissions(
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    NOTIFICATION_PERMISSION_REQUEST_CODE
+                )
+            }
+        }
+    }
+    // ✅ FIM DO NOVO BLOCO DE CÓDIGO
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            LOCATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    getCurrentLocation()
+                } else {
+                    Snackbar.make(
+                        requireView(),
+                        "Permissão de localização negada.",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+            // ✅ Trata o resultado da permissão de notificação
+            NOTIFICATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permissão concedida
+                    Toast.makeText(context, "Permissão de notificação concedida!", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Permissão negada. Informa ao usuário sobre a importância.
+                    Snackbar.make(
+                        requireView(),
+                        "Permissão de notificação negada. Você não receberá alertas importantes.",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
+
+    // ... (O restante do seu código permanece igual)
     private fun inicializaGerenciamentoLocalizacao(view: View) {
         currentAddressTextView = view.findViewById(R.id.currentAddressTextView)
 
@@ -113,25 +166,6 @@ class HomeFragment : Fragment() {
         )
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getCurrentLocation()
-            } else {
-                Snackbar.make(
-                    requireView(),
-                    "Permission denied. Cannot access location.",
-                    Snackbar.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
     private fun getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
@@ -153,9 +187,8 @@ class HomeFragment : Fragment() {
         }
 
         locationRequest = LocationRequest.create().apply {
-            interval = 30000 // Intervalo em milissegundos para atualizacoes de localizacao
-            fastestInterval =
-                30000 // O menor intervalo de tempo para receber atualizacoes de localizacao
+            interval = 30000
+            fastestInterval = 30000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
@@ -168,17 +201,16 @@ class HomeFragment : Fragment() {
 
     private fun displayAddress(location: Location) {
         val geocoder = Geocoder(requireContext(), Locale.getDefault())
-        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val address = addresses?.firstOrNull()?.getAddressLine(0) ?: "Address not found"
+                val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                val address = addresses?.firstOrNull()?.getAddressLine(0) ?: "Endereço não encontrado"
                 withContext(Dispatchers.Main) {
                     currentAddressTextView.text = address
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    currentAddressTextView.text = "Error: ${e.message}"
+                    currentAddressTextView.text = "Erro: ${e.message}"
                 }
             }
         }
