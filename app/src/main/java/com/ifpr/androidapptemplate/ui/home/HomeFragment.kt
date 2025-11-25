@@ -1,202 +1,204 @@
 package com.ifpr.androidapptemplate.ui.home
 
+// IMPORTS NECESSÁRIOS PARA A NOVA LÓGICA
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.location.Geocoder
 import android.location.Location
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
-import android.util.Base64
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.bumptech.glide.Glide
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
 import com.ifpr.androidapptemplate.R
-import com.ifpr.androidapptemplate.baseclasses.Item
-import com.ifpr.androidapptemplate.databinding.FragmentHomeBinding
-import com.ifpr.androidapptemplate.ui.ai.AiLogicActivity
+import com.ifpr.androidapptemplate.baseclasses.Tesouro // << RENOMEIE Item.kt PARA Tesouro.kt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
+import java.util.*
 
 class HomeFragment : Fragment() {
 
-    private var _binding: FragmentHomeBinding? = null
-    private val binding get() = _binding!!
-
+    // --- 1. ONDE DECLARAR AS VARIÁVEIS ---
+    // Variáveis para geolocalização (você já tinha)
     private lateinit var currentAddressTextView: TextView
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private lateinit var locationRequest: LocationRequest
+    private var currentLocation: Location? = null // <- Guardar a localização atual
+
+    // Variáveis para os componentes da UI do formulário
+    private lateinit var nomeTesouroEditText: EditText
+    private lateinit var descricaoTesouroEditText: EditText
+    private lateinit var previewImageView: ImageView
+    private var imagemSelecionadaUri: Uri? = null // <- Guardar a URI da imagem
+
+    // Launcher para obter a imagem da galeria
+    private val pegarImagemLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            imagemSelecionadaUri = result.data?.data
+            previewImageView.setImageURI(imagemSelecionadaUri) // Mostra a imagem na tela
+        }
+    }
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2 // codigo de requisicao do gemini
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2
     }
 
+    // --- 2. ONDE CONFIGURAR A TELA (onCreateView) ---
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
+        // Infla o novo layout do formulário
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
-        // + gemini
+        // Inicializa as permissões e a localização (lógica que você já tinha)
         requestNotificationPermission()
-
         inicializaGerenciamentoLocalizacao(view)
 
-        val containerLayout = view.findViewById<LinearLayout>(R.id.itemContainer)
-        carregarItensMarketplace(containerLayout)
+        // Vincula as variáveis da UI com os componentes do XML
+        nomeTesouroEditText = view.findViewById(R.id.editText_nome_tesouro)
+        descricaoTesouroEditText = view.findViewById(R.id.editText_descricao_tesouro)
+        previewImageView = view.findViewById(R.id.imageView_preview)
+        val btnAdicionarFoto = view.findViewById<Button>(R.id.button_adicionar_foto)
+        val btnSalvarTesouro = view.findViewById<Button>(R.id.button_salvar_tesouro)
 
-        val fab = view.findViewById<FloatingActionButton>(R.id.fab_ai)
-        fab.setOnClickListener {
-            val context = view.context
-            val intent = Intent(context, AiLogicActivity::class.java)
-            context.startActivity(intent)
+        // --- 3. ONDE COLOCAR A LÓGICA DOS BOTÕES ---
+        btnAdicionarFoto.setOnClickListener {
+            abrirGaleria()
+        }
+
+        btnSalvarTesouro.setOnClickListener {
+            salvarTesouro()
         }
 
         return view
     }
 
-    // ✅ INÍCIO DO NOVO BLOCO DE CÓDIGO PARA PERMISSÃO DE NOTIFICAÇÃO
-    private fun requestNotificationPermission() {
-        // A permissão só é necessária no Android 13 (API 33) ou superior
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // Se não tiver a permissão, solicita ao usuário
-                requestPermissions(
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    NOTIFICATION_PERMISSION_REQUEST_CODE
-                )
+    // --- 4. ONDE COLOCAR A LÓGICA PARA ABRIR A GALERIA ---
+    private fun abrirGaleria() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
+        pegarImagemLauncher.launch(intent)
+    }
+
+    // --- 5. ONDE COLOCAR A LÓGICA PRINCIPAL PARA SALVAR O TESOURO ---
+    private fun salvarTesouro() {
+        val nome = nomeTesouroEditText.text.toString().trim()
+        val descricao = descricaoTesouroEditText.text.toString().trim()
+        val usuario = FirebaseAuth.getInstance().currentUser
+
+        // Validações
+        if (nome.isEmpty() || descricao.isEmpty()) {
+            Toast.makeText(context, "Nome e descrição são obrigatórios.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (imagemSelecionadaUri == null) {
+            Toast.makeText(context, "Selecione uma foto para o tesouro.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (currentLocation == null) {
+            Toast.makeText(context, "Aguardando localização...", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (usuario == null) {
+            Toast.makeText(context, "Erro de autenticação. Faça login novamente.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val snackbar = Snackbar.make(requireView(), "Salvando tesouro, por favor aguarde...", Snackbar.LENGTH_INDEFINITE)
+        snackbar.show()
+
+        // Faz o upload da imagem para o Firebase Storage
+        val storageRef = FirebaseStorage.getInstance().reference
+        val idImagem = UUID.randomUUID().toString()
+        val imagemRef = storageRef.child("tesouros/$idImagem.jpg")
+
+        imagemRef.putFile(imagemSelecionadaUri!!)
+            .addOnSuccessListener {
+                // Se o upload der certo, pega a URL de download
+                imagemRef.downloadUrl.addOnSuccessListener { url ->
+                    // Cria o objeto Tesouro com todos os dados
+                    val tesouroId = FirebaseDatabase.getInstance().reference.child("tesouros").push().key ?: ""
+                    val novoTesouro = Tesouro(
+                        id = tesouroId,
+                        nome = nome,
+                        descricao = descricao,
+                        imageUrl = url.toString(),
+                        latitude = currentLocation!!.latitude,
+                        longitude = currentLocation!!.longitude,
+                        endereco = currentAddressTextView.text.toString(),
+                        criadoPorUid = usuario.uid,
+                        criadoPorNome = usuario.displayName ?: "Anônimo",
+                        timestamp = System.currentTimeMillis()
+                    )
+
+                    // Salva o objeto no Realtime Database
+                    FirebaseDatabase.getInstance().getReference("tesouros")
+                        .child(tesouroId)
+                        .setValue(novoTesouro)
+                        .addOnSuccessListener {
+                            snackbar.dismiss()
+                            Toast.makeText(context, "Tesouro salvo com sucesso!", Toast.LENGTH_LONG).show()
+                            // Limpa o formulário
+                            nomeTesouroEditText.text.clear()
+                            descricaoTesouroEditText.text.clear()
+                            previewImageView.setImageURI(null)
+                        }
+                        .addOnFailureListener {
+                            snackbar.dismiss()
+                            Toast.makeText(context, "Falha ao salvar no banco de dados: ${it.message}", Toast.LENGTH_LONG).show()
+                        }
+                }
+            }
+            .addOnFailureListener {
+                snackbar.dismiss()
+                Toast.makeText(context, "Falha no upload da imagem: ${it.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+
+    // --- 6. CÓDIGO DE SUPORTE (MAIORIA JÁ EXISTIA) ---
+
+    // Ajuste em getCurrentLocation para guardar a localização
+    private fun getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) { return }
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            if (location != null) {
+                this.currentLocation = location // <- GUARDA A LOCALIZAÇÃO
+                displayAddress(location)
             }
         }
     }
-    // ✅ FIM DO NOVO BLOCO DE CÓDIGO
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            LOCATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getCurrentLocation()
-                } else {
-                    Snackbar.make(
-                        requireView(),
-                        "Permissão de localização negada.",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
-            }
-            // ✅ Trata o resultado da permissão de notificação
-            NOTIFICATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permissão concedida
-                    Toast.makeText(context, "Permissão de notificação concedida!", Toast.LENGTH_SHORT).show()
-                } else {
-                    // Permissão negada. Informa ao usuário sobre a importância.
-                    Snackbar.make(
-                        requireView(),
-                        "Permissão de notificação negada. Você não receberá alertas importantes.",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
-    }
-
-    // ... (O restante do seu código permanece igual)
     private fun inicializaGerenciamentoLocalizacao(view: View) {
         currentAddressTextView = view.findViewById(R.id.currentAddressTextView)
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestLocationPermission()
         } else {
             getCurrentLocation()
         }
-    }
-
-    private fun requestLocationPermission() {
-        requestPermissions(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ),
-            LOCATION_PERMISSION_REQUEST_CODE
-        )
-    }
-
-    private fun getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                locationResult.lastLocation?.let { location ->
-                    displayAddress(location)
-                }
-            }
-        }
-
-        locationRequest = LocationRequest.create().apply {
-            interval = 30000
-            fastestInterval = 30000
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.getMainLooper()
-        )
     }
 
     private fun displayAddress(location: Location) {
@@ -209,55 +211,40 @@ class HomeFragment : Fragment() {
                     currentAddressTextView.text = address
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    currentAddressTextView.text = "Erro: ${e.message}"
-                }
+                withContext(Dispatchers.Main) { currentAddressTextView.text = "Erro ao obter endereço." }
             }
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST_CODE)
+            }
+        }
     }
 
-    fun carregarItensMarketplace(container: LinearLayout) {
-        val databaseRef = FirebaseDatabase.getInstance().getReference("itens")
+    private fun requestLocationPermission() {
+        requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+    }
 
-        databaseRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                container.removeAllViews()
-
-                for (userSnapshot in snapshot.children) {
-                    for (itemSnapshot in userSnapshot.children) {
-                        val item = itemSnapshot.getValue(Item::class.java) ?: continue
-
-                        val itemView = LayoutInflater.from(container.context)
-                            .inflate(R.layout.item_template, container, false)
-
-                        val imageView = itemView.findViewById<ImageView>(R.id.item_image)
-                        val enderecoView = itemView.findViewById<TextView>(R.id.item_endereco)
-
-                        enderecoView.text = "Endereço: ${item.endereco ?: "Não informado"}"
-
-                        if (!item.imageUrl.isNullOrEmpty()) {
-                            Glide.with(container.context).load(item.imageUrl).into(imageView)
-                        } else if (!item.base64Image.isNullOrEmpty()) {
-                            try {
-                                val bytes = Base64.decode(item.base64Image, Base64.DEFAULT)
-                                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                                imageView.setImageBitmap(bitmap)
-                            } catch (_: Exception) {}
-                        }
-
-                        container.addView(itemView)
-                    }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            LOCATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    getCurrentLocation()
+                } else {
+                    Snackbar.make(requireView(), "Permissão de localização negada.", Snackbar.LENGTH_LONG).show()
                 }
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(container.context, "Erro ao carregar dados", Toast.LENGTH_SHORT).show()
+            NOTIFICATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(context, "Permissão de notificação concedida!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Snackbar.make(requireView(), "Você não receberá alertas importantes.", Snackbar.LENGTH_LONG).show()
+                }
             }
-        })
+        }
     }
 }
