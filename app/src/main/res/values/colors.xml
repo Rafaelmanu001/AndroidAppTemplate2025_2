@@ -1,5 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- Paleta: Tema Padrão (Roxo/Violeta) -->
+    <color name="default_primary">#9C27B0</color> <!-- Roxo Médio -->
+    <color name="default_primaryVariant">#7B1FA2</color> <!-- Roxo Escuro -->
+    <color name="default_secondary">#E040FB</color> <!-- Fúcsia/Magenta Vibrante -->
+    <color name="default_background">#F3E5F5</color> <!-- Fundo Lilás bem claro -->
+    <color name="default_surface">#FFFFFF</color> <!-- Cards Brancos -->
+    <color name="default_onPrimary">#FFFFFF</color> <!-- Texto sobre Roxo (Branco) -->
+    <color name="default_onSecondary">#FFFFFF</color> <!-- Texto sobre Fúcsia (Branco) -->
+    <color name="default_onBackground">#1F1F1F</color> <!-- Texto principal (Cinza escuro) -->
+    <color name="default_onSurface">#1F1F1F</color> <!-- Texto nos cards (Cinza escuro) -->
+
+    <!-- Paleta 1: -->
+    <color name="claro_primary">#6200EE</color> <!-- Roxo -->
+    <color name="claro_primaryVariant">#3700B3</color> <!-- Roxo Escuro -->
+    <color name="claro_secondary">#03DAC6</color> <!-- Verde-água -->
+    <color name="claro_background">#FFFFFF</color> <!-- Branco -->
+    <color name="claro_surface">#FFFFFF</color> <!-- Branco -->
+    <color name="claro_onPrimary">#FFFFFF</color> <!-- Texto sobre Roxo -->
+    <color name="claro_onSecondary">#000000</color> <!-- Texto sobre Verde-água -->
+    <color name="claro_onBackground">#000000</color> <!-- Texto principal -->
+    <color name="claro_onSurface">#000000</color> <!-- Texto em cards/superfícies -->
+
+    <!-- Paleta 2: Tema Escuro (Dark) -->
+    <color name="escuro_primary">#BB86FC</color> <!-- Lilás -->
+    <color name="escuro_primaryVariant">#3700B3</color> <!-- Roxo Escuro -->
+    <color name="escuro_secondary">#03DAC6</color> <!-- Verde-água -->
+    <color name="escuro_background">#121212</color> <!-- Cinza quase preto -->
+    <color name="escuro_surface">#1F1F1F</color> <!-- Cinza para cards -->
+    <color name="escuro_onPrimary">#000000</color> <!-- Texto sobre Lilás -->
+    <color name="escuro_onSecondary">#000000</color> <!-- Texto sobre Verde-água -->
+    <color name="escuro_onBackground">#FFFFFF</color> <!-- Texto principal -->
+    <color name="escuro_onSurface">#FFFFFF</color> <!-- Texto em cards/superfícies -->
+
+    <!-- Paleta 3: Tema Mapa Antigo -->
+    <color name="mapa_primary">#795548</color> <!-- Marrom -->
+    <color name="mapa_primaryVariant">#5D4037</color> <!-- Marrom Escuro -->
+    <color name="mapa_secondary">#FFC107</color> <!-- Âmbar/Dourado -->
+    <color name="mapa_background">#FFF8E1</color> <!-- Cor de pergaminho -->
+    <color name="mapa_surface">#FFFAF0</color> <!-- Cor de papel -->
+    <color name="mapa_onPrimary">#FFFFFF</color> <!-- Texto sobre Marrom -->
+    <color name="mapa_onSecondary">#000000</color> <!-- Texto sobre Dourado -->
+    <color name="mapa_onBackground">#4E342E</color> <!-- Texto principal (marrom escuro) -->
+    <color name="mapa_onSurface">#4E342E</color> <!-- Texto em cards (marrom escuro) -->
+
+    <!-- Cores padrão do Material Design -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>

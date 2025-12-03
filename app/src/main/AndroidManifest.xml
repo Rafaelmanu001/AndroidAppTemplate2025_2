@@ -4,9 +4,6 @@
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -19,28 +16,79 @@
         android:theme="@style/Theme.AndroidAppTemplate"
         tools:targetApi="31">
 
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false" />
 
         <activity
-            android:name=".ui.login.LoginActivity"
+            android:name=".ui.details.MapaTesouroActivity"
+            android:exported="false" />
+        <activity
+
+            android:name=".MainActivity"
+            android:exported="true">
+
+        </activity>
+
+
+        <activity-alias
+            android:name=".MapaAlias"
+            android:enabled="false"
             android:exported="true"
-            android:label="@string/app_name">
+            android:icon="@mipmap/ic_launcher_mapa"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_mapa_round"
+            android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity android:name=".MainActivity" />
-        <activity android:name=".ui.usuario.CadastroUsuarioActivity" />
-        <activity android:name=".ui.ai.AiLogicActivity" />
-
-        <service
-            android:name=".ui.firebase.MyFirebaseMessagingService"
-            android:exported="false">
+        </activity-alias>
+        <activity-alias
+            android:name=".EscuroAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_escuro"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_escuro_round"
+            android:targetActivity=".MainActivity">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </service>
+        </activity-alias>
+        <activity-alias
+            android:name=".ClaroAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_claro"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_claro_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".DefaultAlias"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_default"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_default_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity android:name=".ui.login.LoginActivity" />
+        <activity android:name=".ui.details.DetalheTesouroActivity" />
     </application>
 
 </manifest>

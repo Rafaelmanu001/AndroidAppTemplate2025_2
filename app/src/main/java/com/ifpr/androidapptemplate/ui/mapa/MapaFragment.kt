@@ -6,29 +6,26 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.ifpr.androidapptemplate.baseclasses.Tesouro
+import com.ifpr.androidapptemplate.baseclasses.TesouroRepository
 import com.ifpr.androidapptemplate.databinding.FragmentMapaBinding
 import com.ifpr.androidapptemplate.ui.adapter.ListItem
 import com.ifpr.androidapptemplate.ui.adapter.TesouroAdapter
-import com.ifpr.androidapptemplate.ui.details.DetalheTesouroActivity
+import com.ifpr.androidapptemplate.ui.details.MapaTesouroActivity
 
 class MapaFragment : Fragment() {
 
     private var _binding: FragmentMapaBinding? = null
     private val binding get() = _binding!!
 
+    // Variáveis do Repositório e do Adapter
+    private lateinit var tesouroRepository: TesouroRepository
     private lateinit var tesouroAdapter: TesouroAdapter
     private val listItems = mutableListOf<ListItem>()
-
-    private val databaseReference = FirebaseDatabase.getInstance().getReference("tesouros")
-        .orderByChild("timestamp")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -37,16 +34,25 @@ class MapaFragment : Fragment() {
         return binding.root
     }
 
+    // Apenas UMA declaração de onViewCreated
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Inicializa o repositório aqui
+        tesouroRepository = TesouroRepository()
+
         setupRecyclerView()
         buscarTodosOsTesouros()
     }
 
     private fun setupRecyclerView() {
         tesouroAdapter = TesouroAdapter(listItems) { tesouro ->
-            val intent = Intent(requireContext(), DetalheTesouroActivity::class.java).apply {
+            val intent = Intent(requireContext(), MapaTesouroActivity::class.java).apply {
                 putExtra("TESOURO_ID", tesouro.id)
+                putExtra("TESOURO_NOME", tesouro.nome)
+                putExtra("TESOURO_LATITUDE", tesouro.latitude)
+                putExtra("TESOURO_LONGITUDE", tesouro.longitude)
+                putExtra("TESOURO_ENDERECO", tesouro.endereco)
             }
             startActivity(intent)
         }
@@ -58,45 +64,36 @@ class MapaFragment : Fragment() {
         binding.progressBarExplorar.isVisible = true
         binding.textViewNenhumTesouroExplorar.isVisible = false
 
-        databaseReference.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val tesourosList = mutableListOf<Tesouro>()
-                if (snapshot.exists()) {
-                    for (tesouroSnapshot in snapshot.children) {
-                        tesouroSnapshot.getValue(Tesouro::class.java)?.let { tesouro ->
-                            tesourosList.add(tesouro)
-                        }
-                    }
-                }
+        tesouroRepository.buscarTodosOsTesouros { result ->
+            // Este bloco é executado quando o repositório retorna os dados
+            binding.progressBarExplorar.isVisible = false
 
-                // Processa a lista para agrupar por cidade
+            result.onSuccess { tesourosList ->
+                // Sucesso! A lista de tesouros foi recebida.
                 processarListaAgrupada(tesourosList)
-
                 tesouroAdapter.notifyDataSetChanged()
-                binding.progressBarExplorar.isVisible = false
                 binding.textViewNenhumTesouroExplorar.isVisible = listItems.isEmpty()
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                binding.progressBarExplorar.isVisible = false
-                Log.e("FragmentMapa", "Erro ao buscar tesouros: ${error.message}")
+            result.onFailure { error ->
+                // Falha! Tratar o erro.
+                Log.e("MapaFragment", "Erro ao buscar tesouros: ${error.message}")
+                Toast.makeText(context, "Falha ao carregar os tesouros.", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
     }
 
     private fun processarListaAgrupada(tesouros: List<Tesouro>) {
         listItems.clear()
 
-        // Agrupa os tesouros por cidade e depois ordena por timestamp dentro de cada cidade
         val tesourosAgrupados = tesouros
-            .sortedByDescending { it.timestamp }
-            .groupBy { it.endereco } // 'endereco' agora contém a cidade
+            // .sortedByDescending { it.timestamp } // O repositório já faz isso
+            .groupBy { it.endereco }
 
-        // Adiciona os itens agrupados à lista final que será exibida
         tesourosAgrupados.forEach { (cidade, tesourosDaCidade) ->
-            listItems.add(ListItem.Header(cidade)) // Adiciona o cabeçalho da cidade
+            listItems.add(ListItem.Header(cidade))
             tesourosDaCidade.forEach { tesouro ->
-                listItems.add(ListItem.TesouroItem(tesouro)) // Adiciona cada tesouro
+                listItems.add(ListItem.TesouroItem(tesouro))
             }
         }
     }
