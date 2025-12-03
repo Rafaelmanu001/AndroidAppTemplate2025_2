@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Item 1: Mapa (a nova tela inicial) -->
-    <item
-        android:id="@+id/navigation_mapa"
-        android:icon="@drawable/ic_map" <!-- Ícone de mapa -->
-    android:title="@string/title_mapa" />
-
-    <!-- Item 2: Adicionar (o antigo Home) -->
+    <!-- Item 1: Home (Tela de Novidades) -->
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/ic_add_location" <!-- Ícone de adicionar -->
-    android:title="@string/title_home" />
+        android:icon="@drawable/ic_home_black_24dp"
+        android:title="@string/title_home" /> <!-- Garanta que em strings.xml title_home seja "Home" ou "Início" -->
 
-    <!-- Item 3: Perfil -->
+    <!-- Item 2: Explorar (Mapa de Tesouros) -->
+    <item
+        android:id="@+id/navigation_mapa"
+        android:icon="@drawable/ic_map"
+        android:title="@string/title_mapa" />
+
+    <!-- Item 3: Adicionar Tesouro -->
+    <item
+        android:id="@+id/navigation_dashboard"
+        android:icon="@drawable/ic_add_location"
+        android:title="@string/title_dashboard" /> <!-- Garanta que em strings.xml title_dashboard seja "Adicionar" -->
+
+    <!-- Item 4: Perfil -->
     <item
         android:id="@+id/navigation_profile"
-        android:icon="@drawable/ic_person" <!-- Ícone de perfil -->
-    android:title="@string/title_profile" />
+        android:icon="@drawable/ic_person"
+        android:title="@string/title_profile" />
 
 </menu>
-    

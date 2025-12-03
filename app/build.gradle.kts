@@ -4,6 +4,7 @@ plugins {
 
     id("com.google.gms.google-services")
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
+
 }
 
 android {
@@ -69,6 +70,7 @@ dependencies {
     implementation(libs.firebase.analytics.ktx)
 
     implementation(libs.google.firebase.ai)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     implementation(libs.glide)
 

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.detalhe.DetalheTesouroActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/imageView_detalhe"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="Imagem do Tesouro"
+            tools:src="@tools:sample/backgrounds/scenic" />
+
+        <TextView
+            android:id="@+id/textView_nome_detalhe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            tools:text="Nome do Tesouro Aqui" />
+
+        <TextView
+            android:id="@+id/textView_descricao_detalhe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textSize="16sp"
+            tools:text="Descrição longa e detalhada sobre o que torna este lugar tão especial e por que você deveria visitá-lo." />
+
+        <TextView
+            android:id="@+id/textView_endereco_detalhe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:drawableStart="@drawable/ic_baseline_location_on_24"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textSize="14sp"
+            tools:text="Endereço completo do local, 123" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/button_curtir"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Curtir"
+                android:src="@drawable/ic_heart_outline" /> <!-- Ícone de coração vazio -->
+
+            <TextView
+                android:id="@+id/text_view_contagem_curtidas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="15" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

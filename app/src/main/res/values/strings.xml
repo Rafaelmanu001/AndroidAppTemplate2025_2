@@ -1,8 +1,10 @@
+<!-- strings.xml -->
 <resources>
-    <string name="app_name">AndroidAppTemplate</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
-    <string name="title_profile">Profile</string>
-    <string name="title_itens">Itens</string>
+    <string name="app_name">Together Notes</string>
+    <string name="title_home">Updates</string>
+    <string name="title_dashboard">Adicionar</string>
+    <string name="title_notifications">Notificações</string>
+    <string name="title_profile">Perfil</string>
+    <string name="title_mapa">Tesouros</string>
 </resources>
+        

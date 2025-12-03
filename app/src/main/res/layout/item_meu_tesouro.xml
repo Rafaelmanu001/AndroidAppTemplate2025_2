@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Imagem do Tesouro -->
+        <ImageView
+            android:id="@+id/image_view_tesouro_item"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:contentDescription="Imagem do tesouro"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:src="@tools:sample/backgrounds/scenic" />
+
+        <!-- Nome do Tesouro -->
+        <TextView
+            android:id="@+id/text_view_nome_tesouro_item"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/image_view_tesouro_item"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Nome do Tesouro" />
+
+        <!-- Endereço do Tesouro -->
+        <TextView
+            android:id="@+id/text_view_endereco_tesouro_item"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintEnd_toEndOf="@id/text_view_nome_tesouro_item"
+            app:layout_constraintStart_toStartOf="@id/text_view_nome_tesouro_item"
+            app:layout_constraintTop_toBottomOf="@id/text_view_nome_tesouro_item"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            tools:text="Rua Fictícia, 123 - Cidade" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

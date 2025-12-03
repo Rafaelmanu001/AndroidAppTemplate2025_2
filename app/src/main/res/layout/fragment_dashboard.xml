@@ -1,67 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     tools:context=".ui.dashboard.DashboardFragment">
 
-
-    <TextView
-        android:id="@+id/text_dashboard"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        android:text="Cadastro de ..."
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:padding="16dp">
 
-    <ImageView
-        android:id="@+id/image_item"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="32dp"
-        android:contentDescription="Store Photo"
-        android:scaleType="centerCrop"
-        android:src="@android:drawable/gallery_thumb"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_dashboard" />
+        <!-- Título -->
+        <TextView
+            android:id="@+id/add_tesouro_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Adicionar Novo Tesouro"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/button_select_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Selecionar Imagem"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/image_item" />
+        <!-- Preview da Imagem -->
+        <ImageView
+            android:id="@+id/image_item"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:background="#E0E0E0"
+            android:contentDescription="Preview da imagem do tesouro"
+            android:scaleType="centerCrop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/add_tesouro_title"
+            tools:src="@android:drawable/ic_menu_gallery" />
 
+        <!-- Botão para selecionar imagem -->
+        <Button
+            android:id="@+id/button_select_image"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Selecionar Imagem"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_item" />
 
-    <EditText
-        android:id="@+id/enderecoItemEditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Endereço"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/button_select_image" />
+        <!-- Campo de Nome -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/nome_item_input_layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Nome do Tesouro"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/button_select_image">
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/nome_item_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
-        android:id="@+id/salvarItemButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Salvar"
-        app:layout_constraintTop_toBottomOf="@id/enderecoItemEditText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <!-- Campo de Descrição -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/descricao_item_input_layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Dicas e Descrição"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/nome_item_input_layout">
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/descricao_item_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:minLines="3" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Seção de Localização -->
+        <LinearLayout
+            android:id="@+id/location_section"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/descricao_item_input_layout">
+
+            <Button
+                android:id="@+id/button_get_location"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Obter Localização Atual"
+                app:icon="@drawable/ic_my_location" />
+
+            <TextView
+                android:id="@+id/text_view_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Nenhuma localização selecionada"
+                android:textAlignment="center"
+                android:textStyle="italic" />
+        </LinearLayout>
+
+        <!-- Botão de Salvar -->
+        <Button
+            android:id="@+id/salvar_item_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:padding="12dp"
+            android:text="Salvar Tesouro"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/location_section" />
+
+        <!-- Barra de Progresso -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/salvar_item_button"
+            app:layout_constraintEnd_toEndOf="@id/salvar_item_button"
+            app:layout_constraintStart_toStartOf="@id/salvar_item_button"
+            app:layout_constraintTop_toTopOf="@id/salvar_item_button"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
