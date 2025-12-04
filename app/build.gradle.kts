@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ifpr.androidapptemplate"
+    namespace = "com.gmrsvoiage.togethernotes"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ifpr.androidapptemplate"
+        applicationId = "com.gmrsvoiage.togethernotes"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
